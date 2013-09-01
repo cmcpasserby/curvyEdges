@@ -50,7 +50,7 @@ class UI(object):
         try:
             self.ceObj.create(self.curveType.getSelect(), self.spans.getValue(), self.selOnly.getValue())
             for i in self.deformers:
-                i.setEnable()
+                i.setEnable(True)
                 i.get()
         except:
             pass
@@ -59,12 +59,12 @@ class UI(object):
         try:
             self.ceObj.select()
             for i in self.deformers:
-                i.setEnable()
+                i.setEnable(True)
                 i.get()
         except:
             self.setCurrentCurve('Select a curvyEdges curve!')
             for i in self.deformers:
-                i.setDisable()
+                i.setEnable(False)
 
     def _deleteHist(self, *args):
         self.ceObj.deletHist()
@@ -124,8 +124,5 @@ class attrSlider(object):
     def set(self, *args):
         getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
 
-    def setEnable(self):
-        self.attr.setEnable(True)
-
-    def setDisable(self):
-        self.attr.setEnable(False)
+    def setEnable(self, val):
+        self.attr.setEnable(val)
