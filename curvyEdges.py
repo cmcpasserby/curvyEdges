@@ -5,14 +5,14 @@ import pymel.core as pm
 class UI(object):
     def __init__(self):
         title = 'curvyEdges'
-        version = '1.00'
+        version = '1.01'
 
         self.ceObj = spline(self)
 
         if pm.window('ceWindow', exists=True):
             pm.deleteUI('ceWindow')
 
-        with pm.window('ceWindow', title=title + ' | ' + version, mb=True, mbv=True, mnb=False,
+        with pm.window('ceWindow', title='{0} | {1}'.format(title, version), mb=True, mbv=True, mnb=False,
                        mxb=False, nm=2, sizeable=False) as window:
             with pm.columnLayout():
 
@@ -33,15 +33,16 @@ class UI(object):
                 with pm.frameLayout(l='Deformer Settings', bs='out', w=402, mh=10, cl=False, cll=True):
                     with pm.columnLayout():
                         self.currentCrv = pm.textFieldButtonGrp(editable=False, l='Current Curve:',
-                                                                bl='Select Curve', cw=[2, 170], bc=self._select)
+                                                                bl='Select Curve', cw=[2, 170], bc=self.select)
 
                         self.deformers = [attrSlider(1, 0, 1, 'envelope', self.ceObj),
                                           attrSlider(1, -10, 10, 'tension', self.ceObj),
                                           attrSlider(0, 0, 256, 'dropoffDistance[0]', self.ceObj),
                                           attrSlider(1, 0, 2, 'scale[0]', self.ceObj)]
 
-                with pm.rowColumnLayout(nc=1, cw=[(1, 402)]):
-                    pm.button(l='Delete History', c=self._deleteHist)
+                with pm.rowColumnLayout(nc=2):
+                    pm.button(l='Delete History', c=lambda *args: self.ceObj.deletHist(), w=201)
+                    pm.button(l='Relink Curve', c=lambda *args: self.ceObj.reLink(), w=201)
 
             # Render Window
             window.show()
@@ -55,7 +56,7 @@ class UI(object):
         except:
             pass
 
-    def _select(self, *args):
+    def select(self, *args):
         try:
             self.ceObj.select()
             for i in self.deformers:
@@ -65,9 +66,6 @@ class UI(object):
             self.setCurrentCurve('Select a curvyEdges curve!')
             for i in self.deformers:
                 i.setEnable(False)
-
-    def _deleteHist(self, *args):
-        self.ceObj.deletHist()
 
     def setCurrentCurve(self, curve):
         self.currentCrv.setText(curve)
@@ -106,6 +104,25 @@ class spline(object):
         self.wire = pm.listConnections(sel[0].getShape())
         self.uiObj.setCurrentCurve(sel[0].shortName())
 
+    def reLink(self):
+        sel = pm.selected()
+        if len(sel) == 2:
+            for i in sel:
+                if isinstance(i.getShape(), pm.nt.Mesh):
+                    mesh = i
+                elif isinstance(i.getShape(), pm.nt.CurveShape):
+                    curve = i
+
+            wire = pm.createNode('wire')
+            wire.setWire(curve)
+            wire.setGeometry(mesh)
+            pm.select(curve, r=True)
+
+            self.uiObj.select()
+
+        else:
+            pm.warning('Must select a polyObject and a Curve to relink!')
+
 
 class attrSlider(object):
     def __init__(self, value, min, max, name, ceObj):
@@ -118,11 +135,17 @@ class attrSlider(object):
                                       minValue=self.min, maxValue=self.max, dc=self.set, cc=self.set)
 
     def get(self):
-        value = getattr(self.ceObj.wire[0], self.name).get(self.attr.getValue())
-        self.attr.setValue(value)
+        try:
+            value = getattr(self.ceObj.wire[0], self.name).get(self.attr.getValue())
+            self.attr.setValue(value)
+        except:
+            AttributeError('{0} node does not exist'.format(self.ceObj.wire[0]))
 
     def set(self, *args):
-        getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
+        try:
+            getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
+        except:
+            AttributeError('{0} node does no longer exist'.format(self.ceObj.wire[0]))
 
     def setEnable(self, val):
         self.attr.setEnable(val)
