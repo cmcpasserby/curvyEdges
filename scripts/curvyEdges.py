@@ -12,8 +12,8 @@ class UI(object):
         if pm.window('ceWindow', exists=True):
             pm.deleteUI('ceWindow')
 
-        with pm.window('ceWindow', title='{0} | {1}'.format(title, version), mb=True, mbv=True, mnb=False,
-                       mxb=False, nm=2, sizeable=False) as window:
+        with pm.window('ceWindow', title='{0} | {1}'.format(title, version), mnb=False,
+                       mxb=False, sizeable=False) as window:
             with pm.columnLayout():
 
                 # curve Frame
