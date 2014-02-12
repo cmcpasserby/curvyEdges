@@ -5,7 +5,7 @@ import pymel.core as pm
 class UI(object):
     def __init__(self):
         title = 'curvyEdges'
-        version = '1.01'
+        version = '1.02'
 
         self.ceObj = spline(self)
 
@@ -17,23 +17,21 @@ class UI(object):
             with pm.columnLayout():
 
                 # curve Frame
-                with pm.frameLayout(l='Curve Settings', cll=True, cl=False, bs='out',
-                                    w=402, mh=10):
-                    with pm.columnLayout(co=['both', 10]):
-                        self.curveType = pm.radioButtonGrp(l='Curve Type:', sl=0, nrb=2,
+                with pm.frameLayout(l='Curve Settings', cll=True, cl=False, bs='out'):
+                    with pm.columnLayout():
+                        self.curveType = pm.radioButtonGrp(l='Curve Type:', sl=0, nrb=2, cw3=[96, 64, 128],
                                                            labelArray2=['BezierCurve', 'NurbsCurve'])
                         self.spans = pm.intSliderGrp(field=True, l='Curve Spans:', minValue=2, maxValue=24,
-                                                     fieldMinValue=2, fieldMaxValue=128, value=2)
-                        with pm.rowColumnLayout(nc=2):
-                            self.selOnly = pm.checkBox(v=False, l='Affect Selection Only')
-                            # Create Curve
-                            pm.button(l='Create Curve', c=self._create, width=262)
+                                                     fieldMinValue=2, fieldMaxValue=128, value=2, cw3=[96, 64, 128])
+                        with pm.rowColumnLayout(nc=2, cw=[1, 96], co=[1, 'right', 1]):
+                            self.selOnly = pm.checkBox(v=False, l='Selection Only')
+                            pm.button(l='Create Curve', c=self._create, width=128)
 
                 # Deformer Frame
-                with pm.frameLayout(l='Deformer Settings', bs='out', w=402, mh=10, cl=False, cll=True):
+                with pm.frameLayout(l='Deformer Settings', bs='out', cl=False, cll=True):
                     with pm.columnLayout():
                         self.currentCrv = pm.textFieldButtonGrp(editable=False, l='Current Curve:',
-                                                                bl='Select Curve', cw=[2, 170], bc=self.select)
+                                                                bl='Select Curve', cw3=[96, 122, 64], bc=self.select)
 
                         self.deformers = [attrSlider(1, 0, 1, 'envelope', self.ceObj),
                                           attrSlider(1, -10, 10, 'tension', self.ceObj),
@@ -41,8 +39,8 @@ class UI(object):
                                           attrSlider(1, 0, 2, 'scale[0]', self.ceObj)]
 
                 with pm.rowColumnLayout(nc=2):
-                    pm.button(l='Delete History', c=lambda *args: self.ceObj.deletHist(), w=201)
-                    pm.button(l='Relink Curve', c=lambda *args: self.ceObj.reLink(), w=201)
+                    pm.button(l='Delete History', c=lambda *args: self.ceObj.deletHist(), w=150)
+                    pm.button(l='Relink Curve', c=lambda *args: self.ceObj.reLink(), w=150)
 
             # Render Window
             window.show()
@@ -132,7 +130,7 @@ class attrSlider(object):
         self.name = name
         self.ceObj = ceObj
         self.attr = pm.floatSliderGrp(field=True, l=self.name, value=self.value, pre=3, enable=False,
-                                      minValue=self.min, maxValue=self.max, dc=self.set, cc=self.set)
+                                      minValue=self.min, maxValue=self.max, dc=self.set, cc=self.set, cw3=[96, 64, 128])
 
     def get(self):
         try:
