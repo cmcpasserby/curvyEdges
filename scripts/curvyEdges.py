@@ -19,31 +19,29 @@ class UI(object):
                 # curve Frame
                 with pm.frameLayout(l='Curve Settings', cll=True, cl=False, bs='out'):
                     with pm.columnLayout():
-                        self.curveType = pm.radioButtonGrp(l='Curve Type:', sl=0, nrb=2, cw3=[96, 64, 128],
+                        self.curveType = pm.radioButtonGrp(l='Curve Type:', sl=0, nrb=2, cw3=[96, 96, 128],
                                                            labelArray2=['BezierCurve', 'NurbsCurve'])
                         self.spans = pm.intSliderGrp(field=True, l='Curve Spans:', minValue=2, maxValue=24,
                                                      fieldMinValue=2, fieldMaxValue=128, value=2, cw3=[96, 64, 128])
                         with pm.rowColumnLayout(nc=2, cw=[1, 96], co=[1, 'right', 1]):
                             self.selOnly = pm.checkBox(v=False, l='Selection Only')
-                            pm.button(l='Create Curve', c=self._create, width=128)
+                            pm.button(l='Create Curve', c=self._create, width=201)
 
                 # Deformer Frame
                 with pm.frameLayout(l='Deformer Settings', bs='out', cl=False, cll=True):
                     with pm.columnLayout():
-                        self.currentCrv = pm.textFieldButtonGrp(editable=False, l='Current Curve:',
-                                                                bl='Select Curve', cw3=[96, 122, 64], bc=self.select)
+                        self.currentCrv = pm.textFieldGrp(editable=False, l='Current Curve:', cw2=[96, 195])
 
                         self.deformers = [attrSlider(1, 0, 1, 'envelope', self.ceObj),
                                           attrSlider(1, -10, 10, 'tension', self.ceObj),
                                           attrSlider(0, 0, 256, 'dropoffDistance[0]', self.ceObj),
                                           attrSlider(1, 0, 2, 'scale[0]', self.ceObj)]
 
-                with pm.rowColumnLayout(nc=2):
-                    pm.button(l='Delete History', c=lambda *args: self.ceObj.deletHist(), w=150)
-                    pm.button(l='Relink Curve', c=lambda *args: self.ceObj.reLink(), w=150)
-
             # Render Window
             window.show()
+            # ScriptJob
+            pm.scriptJob(event=['SelectionChanged', self.select], protected=True, p=window)
+            self.select()
 
     def _create(self, *args):
         try:
@@ -93,33 +91,20 @@ class spline(object):
             #Object
             self.wire = pm.wire(sel[0].node(), w=curve)
 
-    def deletHist(self):
-        sel = pm.selected()
-        pm.delete(sel[0].getShape(), ch=True)
-
     def select(self):
         sel = pm.selected()
-        self.wire = pm.listConnections(sel[0].getShape())
-        self.uiObj.setCurrentCurve(sel[0].shortName())
+        if isinstance(sel[0], pm.nt.Transform):
+            if not isinstance(sel[0].getShape(), pm.nt.NurbsCurve):
+                raise Exception('Invalid Selection Type')
 
-    def reLink(self):
-        sel = pm.selected()
-        if len(sel) == 2:
-            for i in sel:
-                if isinstance(i.getShape(), pm.nt.Mesh):
-                    mesh = i
-                elif isinstance(i.getShape(), pm.nt.CurveShape):
-                    curve = i
-
-            wire = pm.createNode('wire')
-            wire.setWire(curve)
-            wire.setGeometry(mesh)
-            pm.select(curve, r=True)
-
-            self.uiObj.select()
+        elif isinstance(sel[0], pm.NurbsCurveCV):
+            sel = [i.node().getParent() for i in sel]
 
         else:
-            pm.warning('Must select a polyObject and a Curve to relink!')
+            raise Exception('Invalid Selection Type')
+
+        self.wire = pm.listConnections(sel[0].getShape())
+        self.uiObj.setCurrentCurve(sel[0].shortName())
 
 
 class attrSlider(object):
