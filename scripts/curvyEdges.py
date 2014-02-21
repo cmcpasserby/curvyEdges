@@ -9,11 +9,11 @@ class UI(object):
 
         self.ceObj = spline(self)
 
-        if pm.window('ceWindow', exists=True):
-            pm.deleteUI('ceWindow')
+        if pm.window('curvyEdgesWin', exists=True):
+            pm.deleteUI('curvyEdgesWin')
 
-        with pm.window('ceWindow', title='{0} | {1}'.format(title, version), mnb=False,
-                       mxb=False, sizeable=False) as window:
+        with pm.window('curvyEdgeWin', title='{0} | {1}'.format(title, version),
+                       mnb=False, mxb=False, sizeable=False) as window:
             with pm.columnLayout():
 
                 # curve Frame
@@ -37,9 +37,7 @@ class UI(object):
                                           attrSlider(0, 0, 256, 'dropoffDistance[0]', self.ceObj),
                                           attrSlider(1, 0, 2, 'scale[0]', self.ceObj)]
 
-            # Render Window
             window.show()
-            # ScriptJob
             pm.scriptJob(event=['SelectionChanged', self.select], protected=True, p=window)
             self.select()
 
