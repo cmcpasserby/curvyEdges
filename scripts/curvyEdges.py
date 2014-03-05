@@ -5,14 +5,14 @@ import pymel.core as pm
 class UI(object):
     def __init__(self):
         title = 'curvyEdges'
-        version = '1.02'
+        version = '1.03'
 
         self.ceObj = spline(self)
 
         if pm.window('curvyEdgesWin', exists=True):
             pm.deleteUI('curvyEdgesWin')
 
-        with pm.window('curvyEdgeWin', title='{0} | {1}'.format(title, version),
+        with pm.window('curvyEdgesWin', title='{0} | {1}'.format(title, version),
                        mnb=False, mxb=False, sizeable=False) as window:
             with pm.columnLayout():
 
@@ -112,8 +112,13 @@ class attrSlider(object):
         self.max = max
         self.name = name
         self.ceObj = ceObj
+
+        self.undoState = False
         self.attr = pm.floatSliderGrp(field=True, l=self.name, value=self.value, pre=3, enable=False,
-                                      minValue=self.min, maxValue=self.max, dc=self.set, cc=self.set, cw3=[96, 64, 128])
+                                      minValue=self.min, maxValue=self.max, dc=self.set,
+                                      cc=self.closeChunk, cw3=[96, 64, 128])
+
+        pm.scriptJob(event=['Undo', self.get], protected=True, p=self.attr)
 
     def get(self):
         try:
@@ -123,10 +128,19 @@ class attrSlider(object):
             AttributeError('{0} node does not exist'.format(self.ceObj.wire[0]))
 
     def set(self, *args):
+        if not self.undoState:
+            self.undoState = True
+            pm.undoInfo(openChunk=True)
+
         try:
             getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
         except:
             AttributeError('{0} node does no longer exist'.format(self.ceObj.wire[0]))
+
+    def closeChunk(self, *args):
+        if self.undoState:
+            pm.undoInfo(closeChunk=True)
+            self.undoState = False
 
     def setEnable(self, val):
         self.attr.setEnable(val)
