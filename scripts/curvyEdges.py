@@ -107,15 +107,12 @@ class spline(object):
 
 class attrSlider(object):
     def __init__(self, value, min, max, name, ceObj):
-        self.value = value
-        self.min = min
-        self.max = max
         self.name = name
         self.ceObj = ceObj
 
         self.undoState = False
-        self.attr = pm.floatSliderGrp(field=True, l=self.name, value=self.value, pre=3, enable=False,
-                                      minValue=self.min, maxValue=self.max, dc=lambda *args: self.set(cc=False),
+        self.attr = pm.floatSliderGrp(field=True, l=self.name, value=value, pre=3, enable=False,
+                                      minValue=min, maxValue=max, dc=lambda *args: self.set(cc=False),
                                       cc=lambda *args: self.set(cc=True), cw3=[96, 64, 128])
 
         pm.scriptJob(event=['Undo', self.get], protected=True, p=self.attr)
@@ -128,20 +125,18 @@ class attrSlider(object):
             AttributeError('{0} node does not exist'.format(self.ceObj.wire[0]))
 
     def set(self, cc=False):
-        if not cc:
-            if not self.undoState:
-                self.undoState = True
-                pm.undoInfo(openChunk=True)
+        if not cc and not self.undoState:
+            self.undoState = True
+            pm.undoInfo(openChunk=True)
 
         try:
             getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
         except:
             AttributeError('{0} node does no longer exist'.format(self.ceObj.wire[0]))
 
-        if cc:
-            if self.undoState:
-                pm.undoInfo(closeChunk=True)
-                self.undoState = False
+        if cc and self.undoState:
+            pm.undoInfo(closeChunk=True)
+            self.undoState = False
 
     def setEnable(self, val):
         self.attr.setEnable(val)
