@@ -5,7 +5,7 @@ import pymel.core as pm
 class UI(object):
     def __init__(self):
         title = 'curvyEdges'
-        version = '1.03'
+        version = '1.01'
 
         self.ceObj = spline(self)
 
