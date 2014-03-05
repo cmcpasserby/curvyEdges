@@ -115,32 +115,33 @@ class attrSlider(object):
 
         self.undoState = False
         self.attr = pm.floatSliderGrp(field=True, l=self.name, value=self.value, pre=3, enable=False,
-                                      minValue=self.min, maxValue=self.max, dc=self.set,
-                                      cc=self.closeChunk, cw3=[96, 64, 128])
+                                      minValue=self.min, maxValue=self.max, dc=lambda *args: self.set(cc=False),
+                                      cc=lambda *args: self.set(cc=True), cw3=[96, 64, 128])
 
         pm.scriptJob(event=['Undo', self.get], protected=True, p=self.attr)
 
-    def get(self):
+    def get(self, *args):
         try:
             value = getattr(self.ceObj.wire[0], self.name).get(self.attr.getValue())
             self.attr.setValue(value)
         except:
             AttributeError('{0} node does not exist'.format(self.ceObj.wire[0]))
 
-    def set(self, *args):
-        if not self.undoState:
-            self.undoState = True
-            pm.undoInfo(openChunk=True)
+    def set(self, cc=False):
+        if not cc:
+            if not self.undoState:
+                self.undoState = True
+                pm.undoInfo(openChunk=True)
 
         try:
             getattr(self.ceObj.wire[0], self.name).set(self.attr.getValue())
         except:
             AttributeError('{0} node does no longer exist'.format(self.ceObj.wire[0]))
 
-    def closeChunk(self, *args):
-        if self.undoState:
-            pm.undoInfo(closeChunk=True)
-            self.undoState = False
+        if cc:
+            if self.undoState:
+                pm.undoInfo(closeChunk=True)
+                self.undoState = False
 
     def setEnable(self, val):
         self.attr.setEnable(val)
