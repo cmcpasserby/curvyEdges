@@ -35,7 +35,8 @@ class UI(object):
                         self.deformers = [attrSlider(1, 0, 1, 'envelope', self.ceObj),
                                           attrSlider(1, -10, 10, 'tension', self.ceObj),
                                           attrSlider(0, 0, 256, 'dropoffDistance[0]', self.ceObj),
-                                          attrSlider(1, 0, 2, 'scale[0]', self.ceObj)]
+                                          attrSlider(1, 0, 2, 'scale[0]', self.ceObj),
+                                          attrSlider(1, 0, 1, 'rotation', self.ceObj)]
 
             window.show()
             pm.scriptJob(event=['SelectionChanged', self.select], protected=True, p=window)
