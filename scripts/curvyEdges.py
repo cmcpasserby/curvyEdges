@@ -141,3 +141,7 @@ class attrSlider(object):
 
     def setEnable(self, val):
         self.attr.setEnable(val)
+
+if __name__ == "__main__":
+    UI()
+    
